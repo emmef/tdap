@@ -27,13 +27,18 @@
 #include <cppunit/TestCaller.h>
 #include <cppunit/TextTestRunner.h>
 #include "TestPower2.hpp"
+#include <tdap/array.hpp>
+#include <tdap/buffer.hpp>
+#include <tdap/circular.hpp>
 
 using namespace CppUnit;
 using namespace std;
+using namespace tdap;
 
 int main ()
 {
     CppUnit::TextTestRunner runner;
+    Array<float, 15> data;
 
     runner.addTest(TestPowerOf2::createSuite());
 
