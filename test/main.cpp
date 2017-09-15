@@ -30,6 +30,7 @@
 #include <tdap/array.hpp>
 #include <tdap/buffer.hpp>
 #include <tdap/circular.hpp>
+#include <tdap/delay.hpp>
 
 using namespace CppUnit;
 using namespace std;

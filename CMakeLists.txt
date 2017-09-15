@@ -7,7 +7,7 @@ find_package(PkgConfig)
 pkg_check_modules(CPP_UNIT REQUIRED cppunit>=1.5)
 
 set(HEADER_FILES
-        src/tdap/array_traits.hpp src/tdap/bounds.hpp src/tdap/array.hpp src/tdap/buffer.hpp src/tdap/circular.hpp)
+        src/tdap/array_traits.hpp src/tdap/bounds.hpp src/tdap/array.hpp src/tdap/buffer.hpp src/tdap/circular.hpp src/tdap/delay.hpp)
 
 set(SOURCE_FILES
         test/main.cpp

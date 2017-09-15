@@ -26,11 +26,12 @@
 #include <tdap/array_traits.hpp>
 
 namespace tdap {
-    template<typename T, class RangeCheck>
+
+    template<typename T, bool check_range = true>
     class Buffer
-            : public _ArrayTraits<T, RangeCheck, Buffer<T, RangeCheck>, true>
+            : public _ArrayTraits<T, check_range, true, Buffer<T, check_range>>
     {
-        friend class _ArrayTraits<T, RangeCheck, Buffer<T, RangeCheck>, true>;
+        friend class _ArrayTraits<T, check_range, true, Buffer<T, check_range>>;
 
         T *data_;
         size_t capacity_;
@@ -48,7 +49,7 @@ namespace tdap {
 
         static size_t valid_capacity(size_t cap, bool init)
         {
-            if (Count<T>::valid_positive(cap)) {
+            if (Count<T>::valid(cap)) {
                 return cap;
             }
             throw std::invalid_argument(
@@ -61,7 +62,9 @@ namespace tdap {
                 delete[]data_;
                 data_ = nullptr;
             }
+            capacity_ = 0;
         }
+
     public:
         Buffer(size_t initial_capacity) : data_(new T[valid_capacity(initial_capacity, true)]),
                                           capacity_(initial_capacity)
@@ -69,21 +72,33 @@ namespace tdap {
 
         }
 
+        Buffer() : Buffer(0)
+        {}
+
         Buffer(size_t initial_capacity, const T &fill_value) : data_(new T[valid_capacity(initial_capacity, true)]),
                                                                capacity_(initial_capacity)
         {
             fill(fill_value);
         }
 
-        template<class RC>
-        explicit Buffer(const Buffer<T, RC> &source) :
+        template<bool __check_range>
+        explicit Buffer(const Buffer<T, __check_range> &source) :
                 data_(new T[valid_capacity(source.capacity_, true)]), // check as source can have capacity 0
                 capacity_(source.capacity_)
         {
             copy(source);
         }
-        template<class RC>
-        Buffer(Buffer<T, RC> &&source) :
+
+        template<bool __check_range, bool has_trivial_addressing, class ...A>
+        explicit Buffer(const _ArrayTraits<T, __check_range, has_trivial_addressing, A...> &source) :
+                data_(new T[valid_capacity(source.range_size(), true)]), // check as source can have capacity 0
+                capacity_(source.range_size())
+        {
+            copy(source);
+        }
+
+        template<bool __check_range>
+        Buffer(Buffer<T, __check_range> &&source) :
                 data_(source.data_), // check as source can have capacity 0
                 capacity_(source.capacity_)
         {
@@ -103,6 +118,7 @@ namespace tdap {
             }
             T *new_data = new T[new_capacity];
             std::memmove(new_data, data_, std::min(capacity_, new_capacity));
+            delete[] data_;
             data_ = new_data;
             capacity_ = new_capacity;
             return true;

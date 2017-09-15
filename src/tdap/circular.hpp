@@ -166,7 +166,7 @@ namespace tdap {
     {
         friend class _CircularTraits<T, FixedCapCircularBuffer<T, CAPACITY>>;
 
-        Array<T, CAPACITY, RangeCheckDisabled> data_;
+        Array<T, CAPACITY, false> data_;
         size_t size_;
 
         T &_trait_ref(size_t i)
@@ -198,7 +198,7 @@ namespace tdap {
     {
         friend class _CircularTraits<T, CircularBuffer<T>>;
 
-        Buffer<T, RangeCheckDisabled> data_;
+        Buffer<T, false> data_;
         size_t size_;
 
         T &_trait_ref(size_t i)

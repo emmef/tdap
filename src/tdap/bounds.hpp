@@ -29,79 +29,36 @@
 
 namespace tdap {
 
-    /**
-     * Defines validation and transformation of indices/positions in types.
-     */
-    template<class T>
-    struct __RangeCheckTraits
-    {
-        /**
-         * Returns whether the given index is valid, given the range-size.
-         *
-         * @param index The index to verify against the range-size.
-         * @param range_size The range-size, for instance the buffer capacity or array length.
-         * @return true if the index is valid.
-         */
-        static constexpr bool verify(size_t index, size_t range_size)
-        {
-            return T::__range_verify(index, range_size);
-        }
+#if defined(TDAP_RANGE_CHECK_FORCE_ENABLE)
 
-        /**
-         * Gets the transformed index, given the range-size. In most cases the
-         * transformed value is equal to the index.
-         *
-         * @param index The index to transform
-         * @param range_size The range-size, for instance the buffer capacity or array length.
-         * @return the transformed index.
-         */
-        static constexpr bool transform(size_t index, size_t range_size)
-        {
-            return T::__range_transform(index, range_size);
-        }
-    };
-
-    template<class T>
-    static constexpr bool valid_range_check()
+    static constexpr bool is_index_in_range(size_t index, size_t range_size, bool check_index)
     {
-        return std::is_base_of<__RangeCheckTraits<T>, T>::value;
+        return index < range_size;
     }
 
-    /**
-     * Defines that a data type that can be addressed by indices should check if
-     * the index is smaller than the range - capacity or size - of the s
-     */
-    struct RangeCheckEnabled : public __RangeCheckTraits<RangeCheckEnabled>
+#elif defined(TDAP_RANGE_CHECK_FORCE_DISABLE)
+
+    static constexpr bool is_index_in_range(size_t index, size_t range_size, bool check_index)
     {
-#ifdef TDAP_RANGE_CHECK_FORCE_DISABLE
-        static constexpr bool __range_verify(size_t, size_t)
-        { return true; }
+        return true;
+    }
+
 #else
 
-        static constexpr bool __range_verify(size_t index, size_t range_size)
-        { return index < range_size; }
+    static constexpr bool is_index_in_range(size_t index, size_t range_size, bool check_index)
+    {
+        return check_index ? index < range_size : true;
+    }
 
 #endif
 
-        static constexpr size_t __range_transform(size_t index, size_t)
-        { return index; }
-    };
-
-    struct RangeCheckDisabled : public __RangeCheckTraits<RangeCheckDisabled>
+    static size_t checked_index(size_t index, size_t range_size, bool check_index)
     {
-#ifdef TDAP_RANGE_CHECK_FORCE_ENABLE
-        static constexpr bool __range_verify(size_t, size_t)
-        { return true; }
-#else
-
-        static constexpr bool __range_verify(size_t index, size_t range_size)
-        { return index < range_size; }
-
-#endif
-
-        static constexpr size_t __range_transform(size_t index, size_t)
-        { return index; }
-    };
+        if (is_index_in_range(index, range_size, check_index)) {
+            return index;
+        }
+        throw std::out_of_range("checked_index: out of range");
+    }
 
     template<size_t SIZEOF>
     struct __Sized_Count
@@ -145,6 +102,15 @@ namespace tdap {
             return product(cnt1, product(cnt2, cnt3, cnt4));
         }
 
+        template<typename ...A>
+        static size_t validated_product(A... arg)
+        {
+            size_t result = product(arg...);
+            if (result != 0) {
+                return result;
+            }
+            throw std::invalid_argument("Product of arguments is zero or too big");
+        }
         /**
          * Returns the sum of the counts if that sum is less than or equal
          * to max() and zero otherwise.
@@ -243,6 +209,7 @@ namespace tdap {
     struct __PowerOf2__Helper_FillBitsToRight<SIZE_T, false>
     {
         static constexpr int BITS = sizeof(SIZE_T) * 8;
+
         static inline SIZE_T fill(const SIZE_T x)
         {
             SIZE_T n = x;

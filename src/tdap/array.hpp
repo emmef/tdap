@@ -27,11 +27,11 @@
 
 namespace tdap {
 
-    template<typename T, size_t CAPACITY, class RangeCheck = RangeCheckEnabled>
+    template<typename T, size_t CAPACITY, bool check_range = true>
     class Array
-            : public _FixedCapacityArrayTraits<T, CAPACITY, Array<T, CAPACITY, RangeCheck>, RangeCheck>
+            : public _FixedCapacityArrayTraits<T, check_range, CAPACITY, Array<T, CAPACITY, check_range>>
     {
-        friend class _FixedCapacityArrayTraits<T, CAPACITY, Array<T, CAPACITY, RangeCheck>, RangeCheck>;
+        friend class _FixedCapacityArrayTraits<T, check_range, CAPACITY, Array<T, CAPACITY, check_range>>;
 
         static_assert(Count<T>::valid_positive(CAPACITY), "Array: Invalid capacity");
 
@@ -51,8 +51,8 @@ namespace tdap {
         Array(const T &fill_value) {
             fill(fill_value);
         }
-        template<class RC>
-        explicit Array(const Array<T, CAPACITY, RC> &source)
+        template<bool __check_range, class ...A>
+        explicit Array(const _FixedCapacityArrayTraits<T, __check_range, CAPACITY, A...> &source)
         {
             copy(source);
         }
