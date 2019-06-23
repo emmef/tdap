@@ -23,24 +23,33 @@
  */
 
 #include <iostream>
-#include <tdap/average.hpp>
-#include <tdap/filter.hpp>
-#include <tdap/boundaries.hpp>
+#include <cppunit/TestSuite.h>
+#include <cppunit/TestCaller.h>
+#include <cppunit/TextTestRunner.h>
+#include "TestPower2.hpp"
+#include <tdap/array.hpp>
+#include <tdap/buffer.hpp>
+#include <tdap/circular.hpp>
+#include <tdap/delay.hpp>
+#include <tdap/rms.hpp>
 
+using namespace CppUnit;
 using namespace std;
-
-using DoubleFilter = tdap::filter::Filter<double>;
-using DoubleChannelFilter = tdap::filter::ChannelFilter<double>;
+using namespace tdap;
 
 int main ()
 {
-    cout << "Hello world!" << endl;
+    CppUnit::TextTestRunner runner;
+    Array<float, 15> data;
 
-    cout
-    <<
-    "Effective length of identity filter is "
-    << DoubleFilter::getEffectiveImpulseResponseLength(
-            DoubleFilter::identity(), 1000, 1e-12, 100) << endl;
+    BucketAverage<float, 16> average;
 
-    return 0;
+    average >> cout;
+    cout << endl;
+
+    runner.addTest(TestPowerOf2::createSuite());
+
+    cout << "Starting tests!" << endl;
+
+    return runner.run() ? 0 : 1;
 }
