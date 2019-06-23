@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <limits>
 #include <type_traits>
+#include <stdexcept>
 
 namespace tdap {
 
@@ -58,6 +59,18 @@ namespace tdap {
             return index;
         }
         throw std::out_of_range("checked_index: out of range");
+    }
+
+    template<typename T>
+    static constexpr T between(T value, T min, T max)
+    {
+        return value < min ? min : value > max ? max : value;
+    }
+
+    template<typename T>
+    static constexpr bool is_between(T value, T min, T max)
+    {
+        return value >= min && value <= max;
     }
 
     template<size_t SIZEOF>
@@ -309,6 +322,76 @@ namespace tdap {
     {
         using constant = __PowerOf2_Helper<true>;
     };
+
+    template<typename T>
+    class Range
+    {
+        Range() :
+                min_(std::numeric_limits<T>::lowest()),
+                max_(std::numeric_limits<T>::max())
+        {}
+
+        const T min_;
+        const T max_;
+
+        T get_min_if_min_and_max_valid(T start, T end) const
+        {
+            if (is_sub_range(start, end)) {
+                return start;
+            }
+            throw std::invalid_argument("Range::getStartIfValid(): invalid range");
+        }
+
+    public:
+        static const Range<T> &absolute()
+        {
+            static Range range;
+            return range;
+        }
+
+        Range(const Range &superRange, T min, T max) :
+                min_(superRange.get_min_if_min_and_max_valid(min, max)),
+                max_(max)
+        {}
+
+        Range(T min, T max) :
+                min_(absolute().get_min_if_min_and_max_valid(min, max)), max_(max)
+        {}
+
+        T min() const
+        {
+            return min_;
+        }
+
+        T max() const
+        {
+            return max_;
+        }
+
+        T get_between(T value) const
+        {
+            return value < min_ ? min_ : value > max_ ? max_ : value;
+        }
+
+        bool is_between(T value) const
+        {
+            return value >= min_ && value <= max_;
+        }
+
+        bool is_sub_range(T start, T end) const
+        {
+            return start < end && start >= min_ && end <= max_;
+        }
+
+        T get_valid(T value) const
+        {
+            if (is_between(value)) {
+                return value;
+            }
+            throw std::invalid_argument("Range: time not within range");
+        }
+    };
+
 
 } /* End of name space tdap */
 

@@ -30,7 +30,8 @@
 
 namespace tdap {
 
-    template<typename T, bool check_range, bool has_trivial_addressing, class Implementation>
+    template<typename T, bool check_range, bool has_trivial_addressing,
+             class Implementation>
     class _ArrayTraits;
 
     template<typename T, class Array, bool isScalar>
@@ -46,7 +47,8 @@ namespace tdap {
          */
         void fill(const T &value)
         {
-            for (size_t i = 0; i < static_cast<const Array *>(this)->range_size(); i++) {
+            for (size_t i = 0;
+                 i < static_cast<const Array *>(this)->range_size(); i++) {
                 static_cast<Array *>(this)->ref(i) = value;
             }
         }
@@ -61,9 +63,11 @@ namespace tdap {
          */
         void zero()
         {
-            static_assert(std::is_scalar<T>::value, "Can only zero scalar type");
+            static_assert(std::is_scalar<T>::value,
+                          "Can only zero scalar type");
             if (Array::has_trivial_adressing()) {
-                std::memset(&mutable_cast().ref(0), 0, sizeof(T) * immutable_cast().range_size());
+                std::memset(&mutable_cast().ref(0), 0,
+                            sizeof(T) * immutable_cast().range_size());
             }
             else {
                 for (size_t i = 0; i < immutable_cast().range_size(); i++) {
@@ -78,7 +82,8 @@ namespace tdap {
         void fill(const T &value)
         {
             if (Array::has_trivial_adressing() && value == static_cast<T>(0)) {
-                std::memset(mutable_cast().ref_data(), 0, immutable_cast().range_size() * sizeof(T));
+                std::memset(mutable_cast().ref_data(), 0,
+                            immutable_cast().range_size() * sizeof(T));
             }
             else {
                 for (size_t i = 0; i < immutable_cast().range_size(); i++) {
@@ -109,22 +114,28 @@ namespace tdap {
         void copy(const _ArrayTraits<T, check_range, true, A...> &source)
         {
             if (source.range_size() != immutable_cast().range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): source has different size");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): source has different size");
             }
 
-            const T * ptr = source.data_get();
+            const T *ptr = source.data_get();
             for (size_t i = 0; i < immutable_cast().range_size(); i++) {
                 immutable_cast().operator[](i) = ptr[i];
             }
         }
 
         template<bool check_range, typename ...A>
-        void copy(size_t offset, const _ArrayTraits<T, check_range, true, A...> &source, size_t sourceOffset, size_t length)
+        void copy(size_t offset,
+                  const _ArrayTraits<T, check_range, true, A...> &source,
+                  size_t sourceOffset, size_t length)
         {
-            size_t end = immutable_cast().check_copy_parameters(offset, source, sourceOffset, length);
+            size_t end = immutable_cast().check_copy_parameters(offset, source,
+                                                                sourceOffset,
+                                                                length);
 
-            const T * ptr = source.data_get();
-            for (size_t src = sourceOffset, dst = offset; dst < end; dst++, src++) {
+            const T *ptr = source.data_get();
+            for (size_t src = sourceOffset, dst = offset;
+                 dst < end; dst++, src++) {
                 mutable_cast().operator[](dst) = ptr[src];
             }
         }
@@ -133,7 +144,8 @@ namespace tdap {
         void copy(const _ArrayTraits<T, check_range, false, A...> &source)
         {
             if (source.range_size() != immutable_cast().range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): source has different size");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): source has different size");
             }
 
             for (size_t i = 0; i < immutable_cast().range_size(); i++) {
@@ -142,11 +154,16 @@ namespace tdap {
         }
 
         template<bool check_range, typename ...A>
-        void copy(size_t offset, const _ArrayTraits<T, check_range, false, A...> &source, size_t sourceOffset, size_t length)
+        void copy(size_t offset,
+                  const _ArrayTraits<T, check_range, false, A...> &source,
+                  size_t sourceOffset, size_t length)
         {
-            size_t end = immutable_cast().check_copy_parameters(offset, source, sourceOffset, length);
+            size_t end = immutable_cast().check_copy_parameters(offset, source,
+                                                                sourceOffset,
+                                                                length);
 
-            for (size_t src = sourceOffset, dst = offset; dst < end; dst++, src++) {
+            for (size_t src = sourceOffset, dst = offset;
+                 dst < end; dst++, src++) {
                 mutable_cast().operator[](dst) = source.operator[](src);
             }
         }
@@ -156,14 +173,18 @@ namespace tdap {
             if (source == destination) {
                 return;
             }
-            size_t src_end = immutable_cast().check_move_parameters(source, length, destination);
+            size_t src_end = immutable_cast().check_move_parameters(source,
+                                                                    length,
+                                                                    destination);
             if (source > destination || src_end <= destination) {
-                for (size_t s = source, d = destination; s < src_end; s++, d++) {
+                for (size_t s = source, d = destination;
+                     s < src_end; s++, d++) {
                     mutable_cast().ref(d) = immutable_cast().get(s);
                 }
             }
             else {
-                for (size_t s = src_end - 1, d = destination + length; --d >= destination; s--) {
+                for (size_t s = src_end - 1, d = destination + length;
+                     --d >= destination; s--) {
                     mutable_cast().ref(d) = immutable_cast().get(s);
                 }
             }
@@ -192,7 +213,8 @@ namespace tdap {
         void copy(const _ArrayTraits<T, check_range, true, A...> &source)
         {
             if (source.range_size() != immutable_cast().range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): source has different size");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): source has different size");
             }
 
             const void *src = static_cast<const void *>(source.data_get());
@@ -201,11 +223,16 @@ namespace tdap {
         }
 
         template<bool check_range, typename ...A>
-        void copy(size_t offset, const _ArrayTraits<T, check_range, true, A...> &source, size_t sourceOffset, size_t length)
+        void copy(size_t offset,
+                  const _ArrayTraits<T, check_range, true, A...> &source,
+                  size_t sourceOffset, size_t length)
         {
-            size_t end = immutable_cast().check_copy_parameters(offset, source, sourceOffset, length);
+            size_t end = immutable_cast().check_copy_parameters(offset, source,
+                                                                sourceOffset,
+                                                                length);
 
-            const void *src = static_cast<const void *>(source.data_get() + sourceOffset);
+            const void *src = static_cast<const void *>(source.data_get() +
+                                                        sourceOffset);
             void *dst = static_cast<void *>(data_ref() + offset);
             std::memmove(dst, src, sizeof(T) * length);
         }
@@ -215,7 +242,8 @@ namespace tdap {
         void copy(const _ArrayTraits<T, check_range, false, A...> &source)
         {
             if (source.range_size() != immutable_cast().range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): source has different size");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): source has different size");
             }
 
             T *dst = data_ref();
@@ -225,22 +253,31 @@ namespace tdap {
         }
 
         template<bool check_range, typename ...A>
-        void copy(size_t offset, const _ArrayTraits<T, check_range, false, A...> &source, size_t sourceOffset, size_t length)
+        void copy(size_t offset,
+                  const _ArrayTraits<T, check_range, false, A...> &source,
+                  size_t sourceOffset, size_t length)
         {
-            size_t end = immutable_cast().check_copy_parameters(offset, source, sourceOffset, length);
+            size_t end = immutable_cast().check_copy_parameters(offset, source,
+                                                                sourceOffset,
+                                                                length);
 
             T *ptr = data_ref();
-            for (size_t src = sourceOffset, dst = offset; dst < end; dst++, src++) {
+            for (size_t src = sourceOffset, dst = offset;
+                 dst < end; dst++, src++) {
                 ptr[dst] = source.operator[](src);
             }
         }
+
         void move(size_t destination, size_t source, size_t length)
         {
             if (source == destination) {
                 return;
             }
-            size_t src_end = immutable_cast().check_move_parameters(source, length, destination);
-            std::memmove(mutable_cast().operator+(destination), immutable_cast().operator+(source),
+            size_t src_end = immutable_cast().check_move_parameters(source,
+                                                                    length,
+                                                                    destination);
+            std::memmove(mutable_cast().operator+(destination),
+                         immutable_cast().operator+(source),
                          sizeof(T) * length);
         }
 
@@ -254,13 +291,26 @@ namespace tdap {
     };
 
 
-    template<typename T, bool check_range, bool has_trivial_addressing, class Array>
+    template<typename T, bool check_range, bool has_trivial_addressing,
+             class Array>
     class _ArrayTraits :
-            public __Scalar_ArrayTraits<T, _ArrayTraits<T, check_range, has_trivial_addressing, Array>, std::is_scalar<T>::value>,
-            public __Trivial_Addressing_ArrayTraits<T, _ArrayTraits<T, check_range, has_trivial_addressing, Array>, has_trivial_addressing>
+            public __Scalar_ArrayTraits<T, _ArrayTraits<T, check_range,
+                                                        has_trivial_addressing,
+                                                        Array>,
+                                        std::is_scalar<T>::value>,
+            public __Trivial_Addressing_ArrayTraits<T,
+                                                    _ArrayTraits<T, check_range,
+                                                                 has_trivial_addressing,
+                                                                 Array>,
+                                                    has_trivial_addressing>
     {
-        static_assert(std::is_trivially_copyable<T>::value, "Value type must be trivially to copy");
-        friend class __Scalar_ArrayTraits<T, _ArrayTraits<T, check_range, has_trivial_addressing, Array>, std::is_scalar<T>::value>;
+        static_assert(std::is_trivially_copyable<T>::value,
+                      "Value type must be trivially to copy");
+
+        friend class __Scalar_ArrayTraits<T, _ArrayTraits<T, check_range,
+                                                          has_trivial_addressing,
+                                                          Array>,
+                                          std::is_scalar<T>::value>;
 
         Array &mutable_cast()
         { return *static_cast<Array *>(this); }
@@ -271,43 +321,56 @@ namespace tdap {
 
         T &mutable_ref(size_t idx)
         {
-            return mutable_cast()._trait_ref_mutable(checked_index(idx, immutable_cast()._trait_range_size(), check_range));
+            return mutable_cast()._trait_ref_mutable(
+                    checked_index(idx, immutable_cast()._trait_range_size(),
+                                  check_range));
         }
 
         const T &immutable_ref(size_t idx) const
         {
-            return immutable_cast()._trait_ref_immutable(checked_index(idx, immutable_cast()._trait_range_size(), check_range));
+            return immutable_cast()._trait_ref_immutable(
+                    checked_index(idx, immutable_cast()._trait_range_size(),
+                                  check_range));
         }
 
         template<bool cr, bool hta, typename ...A>
         size_t
-        check_copy_parameters(size_t offset, const _ArrayTraits<T, cr, hta, A...> &source, size_t sourceOffset, size_t length)
+        check_copy_parameters(size_t offset,
+                              const _ArrayTraits<T, cr, hta, A...> &source,
+                              size_t sourceOffset, size_t length)
         {
             if (!Count<T>::is_valid_sum(offset, length)) {
-                throw std::invalid_argument("ArrayTraits::copy(): offset and length too big (numeric)");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): offset and length too big (numeric)");
             }
             size_t end = offset + length;
             if (end > range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): offset and length too big (size)");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): offset and length too big (size)");
             }
-            if (!Count<T>::is_valid_sum(sourceOffset, length) || sourceOffset + length > source.range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): source offset and length too big");
+            if (!Count<T>::is_valid_sum(sourceOffset, length) ||
+                sourceOffset + length > source.range_size()) {
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): source offset and length too big");
             }
             return end;
         }
 
-        size_t check_move_parameters(size_t source, size_t length, size_t destination)
+        size_t
+        check_move_parameters(size_t source, size_t length, size_t destination)
         {
             if (length == 0) {
                 return source;
             }
             size_t end = Count<T>::sum(source, length);
             if (end == 0 || end > range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): source offset and length too big (numeric)");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): source offset and length too big (numeric)");
             }
             size_t dest_end = Count<T>::sum(destination, length);
             if (dest_end == 0 || dest_end > range_size()) {
-                throw std::invalid_argument("ArrayTraits::copy(): destination offset and length too big (numeric)");
+                throw std::invalid_argument(
+                        "ArrayTraits::copy(): destination offset and length too big (numeric)");
             }
             return end;
         }
@@ -343,15 +406,21 @@ namespace tdap {
 
     template<typename T, bool check_range, size_t CAPACITY, class Array>
     class _FixedCapacityArrayTraits
-            : public _ArrayTraits<T, check_range, true, _FixedCapacityArrayTraits<T, check_range, CAPACITY, Array>>
+            : public _ArrayTraits<T, check_range, true,
+                                  _FixedCapacityArrayTraits<T, check_range,
+                                                            CAPACITY, Array>>
     {
-        friend class _ArrayTraits<T, check_range, true, _FixedCapacityArrayTraits<T, check_range, CAPACITY, Array>>;
+        friend class _ArrayTraits<T, check_range, true,
+                                  _FixedCapacityArrayTraits<T, check_range,
+                                                            CAPACITY, Array>>;
 
-        static_assert(tdap::Count<T>::valid_positive(CAPACITY), "Invalid capacity for fixed-capacity array");
+        static_assert(tdap::Count<T>::valid_positive(CAPACITY),
+                      "Invalid capacity for fixed-capacity array");
 
         constexpr size_t _trait_range_size() const
         {
-            return std::min(CAPACITY, static_cast<const Array *>(this)->_trait_range_size());
+            return std::min(CAPACITY,
+                            static_cast<const Array *>(this)->_trait_range_size());
         }
 
         T &_trait_ref_mutable(size_t i)

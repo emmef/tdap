@@ -31,6 +31,7 @@
 #include <tdap/buffer.hpp>
 #include <tdap/circular.hpp>
 #include <tdap/delay.hpp>
+#include <tdap/rms.hpp>
 
 using namespace CppUnit;
 using namespace std;
@@ -40,6 +41,11 @@ int main ()
 {
     CppUnit::TextTestRunner runner;
     Array<float, 15> data;
+
+    BucketAverage<float, 16> average;
+
+    average >> cout;
+    cout << endl;
 
     runner.addTest(TestPowerOf2::createSuite());
 

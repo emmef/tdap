@@ -33,7 +33,8 @@ namespace tdap {
     {
         friend class _FixedCapacityArrayTraits<T, check_range, CAPACITY, Array<T, CAPACITY, check_range>>;
 
-        static_assert(Count<T>::valid_positive(CAPACITY), "Array: Invalid capacity");
+        static_assert(Count<T>::valid_positive(CAPACITY),
+                      "Data: Invalid capacity");
 
         T data_[CAPACITY];
 
@@ -47,12 +48,17 @@ namespace tdap {
         { return CAPACITY; }
 
     public:
-        Array() {}
-        Array(const T &fill_value) {
+        Array()
+        {}
+
+        Array(const T &fill_value)
+        {
             fill(fill_value);
         }
+
         template<bool __check_range, class ...A>
-        explicit Array(const _FixedCapacityArrayTraits<T, __check_range, CAPACITY, A...> &source)
+        explicit
+        Array(const _FixedCapacityArrayTraits<T, __check_range, CAPACITY, A...> &source)
         {
             copy(source);
         }
